@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flash Cards — Prevenção de Lesões de Pele</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f5f4f0;
+    --surface: #ffffff;
+    --text: #1a1a18;
+    --text-muted: #6b6b68;
+    --text-faint: #a0a09c;
+    --border: rgba(0,0,0,0.10);
+    --border-strong: rgba(0,0,0,0.18);
+    --green: #1D9E75;
+    --green-light: #E1F5EE;
+    --red: #E24B4A;
+    --red-light: #FCEBEB;
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem 4rem;
+  }
+
+  header {
+    width: 100%;
+    max-width: 640px;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+
+  .header-tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--green);
+    background: var(--green-light);
+    padding: 4px 14px;
+    border-radius: 99px;
+    margin-bottom: 0.75rem;
+  }
+
+  header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    font-weight: 400;
+    color: var(--text);
+    line-height: 1.25;
+    margin-bottom: 0.4rem;
+  }
+
+  header p {
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+
+  .container {
+    width: 100%;
+    max-width: 640px;
+  }
+
+  /* Progress */
+  .progress-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 1.25rem;
+  }
+
+  .progress-bar {
+    flex: 1;
+    height: 4px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--green);
+    border-radius: 99px;
+    transition: width 0.4s ease;
+  }
+
+  .progress-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    min-width: 48px;
+    text-align: right;
+  }
+
+  /* Dots */
+  .dots {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+  }
+
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border-strong);
+    background: transparent;
+    transition: background 0.3s, border-color 0.3s;
+  }
+
+  .dot.current { background: #dbeafe; border-color: #3b82f6; }
+  .dot.correct { background: var(--green); border-color: var(--green); }
+  .dot.wrong   { background: var(--red);   border-color: var(--red); }
+
+  /* Card scene */
+  .scene {
+    perspective: 1200px;
+    width: 100%;
+    margin-bottom: 1.25rem;
+    cursor: pointer;
+  }
+
+  .card {
+    width: 100%;
+    min-height: 280px;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.55s cubic-bezier(.4,0,.2,1);
+    border-radius: var(--radius);
+  }
+
+  .card.flipped { transform: rotateY(180deg); }
+
+  .face {
+    position: absolute;
+    width: 100%;
+    min-height: 280px;
+    backface-visibility: hidden;
+    border-radius: var(--radius);
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    border: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .face.back { transform: rotateY(180deg); }
+
+  .card-tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 3px 12px;
+    border-radius: 99px;
+    margin-bottom: 0.75rem;
+    flex-shrink: 0;
+  }
+
+  .card-case {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 8px;
+  }
+
+  .card-question {
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.6;
+    color: var(--text);
+    flex: 1;
+  }
+
+  .card-hint {
+    font-size: 12px;
+    color: var(--text-faint);
+    margin-top: 1.25rem;
+    align-self: center;
+  }
+
+  .card-answer {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text);
+    margin-bottom: 0.75rem;
+  }
+
+  .card-answer strong {
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .card-tip {
+    font-size: 13px;
+    line-height: 1.6;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    border-left: 3px solid;
+    background: var(--bg);
+    color: var(--text-muted);
+    width: 100%;
+    margin-top: auto;
+  }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 0.75rem;
+  }
+
+  .btn {
+    flex: 1;
+    padding: 12px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+  }
+
+  .btn:hover { background: var(--bg); }
+  .btn:active { transform: scale(0.98); }
+
+  .btn.correto {
+    border-color: var(--green);
+    color: var(--green);
+  }
+
+  .btn.errado {
+    border-color: var(--red);
+    color: var(--red);
+  }
+
+  .btn.correto:hover { background: var(--green-light); }
+  .btn.errado:hover  { background: var(--red-light); }
+
+  .counter {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    min-width: 52px;
+    text-align: center;
+  }
+
+  .flip-hint {
+    text-align: center;
+    padding: 4px 0;
+  }
+
+  /* Result */
+  .result {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2.5rem 2rem;
+    text-align: center;
+  }
+
+  .result-score {
+    font-family: 'DM Serif Display', serif;
+    font-size: 64px;
+    font-weight: 400;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+  }
+
+  .result-sub {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+  }
+
+  .result-msg {
+    font-size: 15px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    max-width: 400px;
+    margin: 0 auto 1.75rem;
+  }
+
+  .btn-restart {
+    display: inline-block;
+    padding: 12px 32px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .btn-restart:hover { background: var(--bg); }
+
+  footer {
+    margin-top: 2.5rem;
+    font-size: 12px;
+    color: var(--text-faint);
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-tag">Segurança do Paciente</div>
+  <h1>Prevenção de Lesões de Pele</h1>
+  <p>10 casos clínicos para profissionais de saúde hospitalar</p>
+</header>
+
+<div class="container">
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" id="fc-prog" style="width:0%"></div></div>
+    <span class="progress-label" id="fc-label">0 / 10</span>
+  </div>
+  <div class="dots" id="fc-dots"></div>
+  <div id="fc-main"></div>
+</div>
+
+<footer>Objeto de aprendizagem — Educação em Saúde Hospitalar</footer>
+
+<script>
+const cards = [
+  {
+    tag: 'Lesão por Pressão', tagBg: '#F5C4B3', tagColor: '#712B13', tipBorder: '#993C1D',
+    caso: 'Caso 1',
+    question: 'Paciente de 78 anos, acamado há 5 dias, com região sacral avermelhada e pele íntegra. A área não embranquece ao pressionar com o dedo. O que esse achado indica e qual a conduta imediata?',
+    answer: '<strong>Lesão por pressão categoria 1.</strong> A vermelhidão que não some ao pressionar indica que os tecidos abaixo da pele já foram prejudicados pela pressão. Conduta: aplicar a Escala de Braden, reposicionar o paciente a cada 2 horas, proteger a área com curativo de espuma e comunicar a equipe.',
+    tip: 'Atenção: pele íntegra não quer dizer que está tudo bem — o dano já começou nas camadas mais profundas.'
+  },
+  {
+    tag: 'Escala de Braden', tagBg: '#CECBF6', tagColor: '#3C3489', tipBorder: '#534AB7',
+    caso: 'Caso 2',
+    question: 'Ao avaliar um paciente pela Escala de Braden, a pontuação encontrada é 14. Qual é o nível de risco e quais cuidados preventivos são mais importantes nesse caso?',
+    answer: '<strong>Risco moderado (pontuação 13–14).</strong> Prioridades: usar colchão ou superfície que distribua a pressão, manter a pele seca e hidratada, garantir boa alimentação (verificar proteínas no sangue) e ajudar o paciente a se movimentar.',
+    tip: 'Pontuação igual ou menor que 9 indica risco muito alto — acionar o protocolo de prevenção intensiva imediatamente.'
+  },
+  {
+    tag: 'Dermatite por Incontinência', tagBg: '#9FE1CB', tagColor: '#085041', tipBorder: '#1D9E75',
+    caso: 'Caso 3',
+    question: 'Paciente com perda urinária apresenta vermelhidão espalhada, úmida e brilhante na região íntima, sem ferida aberta. Como diferenciar de uma lesão por pressão categoria 2 e qual o tratamento?',
+    answer: '<strong>Dermatite por incontinência.</strong> Diferença principal: a dermatite tem bordas espalhadas e irregulares; a lesão por pressão categoria 2 tem bordas bem definidas e fica sobre um osso. Tratamento: usar creme de barreira protetora (zinco ou dimeticone), trocar a fralda com frequência e fazer higiene com sabão neutro.',
+    tip: 'Os dois problemas podem aparecer juntos — sempre verifique se há osso saliente embaixo da lesão.'
+  },
+  {
+    tag: 'Rasgadura de Pele', tagBg: '#FAC775', tagColor: '#633806', tipBorder: '#854F0B',
+    caso: 'Caso 4',
+    question: 'Idosa de 83 anos apresenta ferida superficial no antebraço após ser transferida da maca para a cama. A pele está rasgada com um pedaço de pele parcialmente solto. Qual é esse tipo de lesão e como proceder?',
+    answer: '<strong>Rasgadura de pele (categoria 1b da classificação brasileira)</strong> — pedaço de pele presente, mas com coloração alterada. Conduta: limpar com soro fisiológico, reposicionar o pedaço de pele com cuidado, cobrir com curativo que não grude na ferida e marcar a direção do pedaço de pele com uma seta no curativo.',
+    tip: 'Nunca use esparadrapo ou fita adesiva diretamente na pele de pessoas idosas — ao retirar, pode causar uma nova rasgadura.'
+  },
+  {
+    tag: 'Posicionamento', tagBg: '#B5D4F4', tagColor: '#0C447C', tipBorder: '#185FA5',
+    caso: 'Caso 5',
+    question: 'Paciente deitado de lado a 90° há 2 horas. O osso do quadril está diretamente apoiado no colchão. Qual o risco e qual é a posição correta para deitar o paciente de lado?',
+    answer: '<strong>Alto risco de lesão por pressão no quadril.</strong> O decúbito lateral deve ser feito a 30° de inclinação — nunca a 90°. Na posição de 90°, todo o peso do corpo fica sobre o osso do quadril. Usar travesseiros ou coxins para manter o ângulo correto e deixar os calcanhares sem encostar no colchão.',
+    tip: 'Os calcanhares são a segunda área mais afetada por lesão por pressão em pacientes acamados — mantenha-os sempre suspensos com coxins.'
+  },
+  {
+    tag: 'Alimentação e Cicatrização', tagBg: '#C0DD97', tagColor: '#27500A', tipBorder: '#3B6D11',
+    caso: 'Caso 6',
+    question: 'Paciente com ferida profunda no calcanhar está desnutrido, com proteínas baixas no sangue e emagrecimento de 8% em 30 dias. Qual é a relação entre alimentação e cicatrização? Qual a conduta?',
+    answer: '<strong>A desnutrição prejudica diretamente a cicatrização.</strong> Com proteína baixa, o corpo não consegue produzir os tecidos necessários para fechar a ferida. Conduta: acionar o nutricionista, aumentar a oferta de proteínas, zinco e vitamina C; reavaliar toda semana.',
+    tip: 'Uma ferida aberta exige tanto do corpo quanto uma cirurgia — a alimentação é parte do tratamento, não um detalhe.'
+  },
+  {
+    tag: 'Lesão por Dispositivo Médico', tagBg: '#F4C0D1', tagColor: '#72243E', tipBorder: '#993556',
+    caso: 'Caso 7',
+    question: 'Paciente usando máscara de ventilação por 18 horas. A enfermeira percebe vermelhidão com halo claro no nariz. O que é esse achado e como evitar que piore?',
+    answer: '<strong>Lesão por pressão causada por dispositivo médico — categoria 1.</strong> A máscara de ventilação é uma das principais causas desse tipo de lesão no rosto. Como evitar: colocar curativo de espuma fina sob a máscara, verificar os pontos de pressão a cada 2 horas e, se possível, alternar modelos ou tamanhos da máscara.',
+    tip: 'Qualquer equipamento que encoste na pele pode causar esse tipo de lesão: sondas, oxímetros, colarinhos, meias de compressão — inspecione todos os pontos de contato.'
+  },
+  {
+    tag: 'Registro e Documentação', tagBg: '#D3D1C7', tagColor: '#444441', tipBorder: '#5F5E5A',
+    caso: 'Caso 8',
+    question: 'Uma lesão por pressão categoria 2 é encontrada na chegada do paciente, mas só anotada no prontuário 6 horas depois, sem foto e sem medidas. Quais são os riscos dessa falha no registro?',
+    answer: '<strong>Risco assistencial e jurídico.</strong> Sem anotação na chegada, a lesão pode ser considerada como ocorrida durante a internação — isso vira um indicador negativo para o hospital. O registro deve ter: localização, categoria, medidas em centímetros, aparência da ferida, tipo de borda, quantidade de secreção e foto com data.',
+    tip: 'A lesão presente na chegada deve ser registrada em até 24 horas — de preferência na triagem — para não ser contada como acidente hospitalar.'
+  },
+  {
+    tag: 'Lesão Tissular Profunda', tagBg: '#F5C4B3', tagColor: '#712B13', tipBorder: '#993C1D',
+    caso: 'Caso 9',
+    question: 'Paciente tem lesão no calcanhar com pele íntegra, área arroxeada e dor intensa. Não é possível ver a profundidade. Como classificar e por que essa lesão merece atenção especial?',
+    answer: '<strong>Lesão por pressão tissular profunda.</strong> Indica dano nos tecidos internos causado por pressão ou deslizamento, mesmo com a pele ainda fechada. É perigosa porque pode evoluir rapidamente para uma ferida profunda em 24 a 72 horas. Conduta: aliviar a pressão imediatamente, observar diariamente e não aplicar calor no local.',
+    tip: 'No calcanhar, esse tipo de lesão pode virar necrose antes de aparecer qualquer ferida visível — como um iceberg: o maior problema está escondido.'
+  },
+  {
+    tag: 'Escolha do Curativo', tagBg: '#9FE1CB', tagColor: '#085041', tipBorder: '#1D9E75',
+    caso: 'Caso 10',
+    question: 'Ferida profunda na região sacral, 4 × 3 cm, com 70% de tecido de recuperação (granulação) e 30% de tecido amarelado (fibrina). Secreção moderada. Qual cobertura indicar e por quê?',
+    answer: '<strong>Espuma de poliuretano com prata ou alginato de cálcio</strong> para absorver a secreção e controlar a quantidade de bactérias. O tecido róseo (granulação) mostra que a ferida está cicatrizando bem — manter o ambiente úmido sem encharcar. Trocar quando o curativo estiver saturado, em geral a cada 2 a 3 dias.',
+    tip: 'Antes de escolher o curativo, avalie quatro pontos: tipo de tecido na ferida, sinais de infecção, quantidade de secreção e condição das bordas. Cada ponto indica uma necessidade diferente.'
+  }
+];
+
+let current = 0, flipped = false, scores = [];
+
+function renderDots() {
+  document.getElementById('fc-dots').innerHTML = cards.map((_,i) => {
+    let cls = '';
+    if (i < scores.length) cls = scores[i] ? 'correct' : 'wrong';
+    else if (i === current) cls = 'current';
+    return `<div class="dot ${cls}"></div>`;
+  }).join('');
+}
+
+function renderCard() {
+  flipped = false;
+  const c = cards[current];
+  const pct = Math.round((current / cards.length) * 100);
+  document.getElementById('fc-prog').style.width = pct + '%';
+  document.getElementById('fc-label').textContent = current + ' / ' + cards.length;
+  renderDots();
+
+  document.getElementById('fc-main').innerHTML = `
+    <div class="scene" id="fc-scene" onclick="flipCard()">
+      <div class="card" id="fc-card">
+        <div class="face front">
+          <span class="card-tag" style="background:${c.tagBg};color:${c.tagColor}">${c.tag}</span>
+          <p class="card-case">${c.caso}</p>
+          <p class="card-question">${c.question}</p>
+          <p class="card-hint">toque para ver a resposta</p>
+        </div>
+        <div class="face back">
+          <span class="card-tag" style="background:${c.tagBg};color:${c.tagColor}">${c.tag}</span>
+          <p class="card-answer">${c.answer}</p>
+          <div class="card-tip" style="border-color:${c.tipBorder}">${c.tip}</div>
+        </div>
+      </div>
+    </div>
+    <div class="controls" id="fc-controls" style="display:none">
+      <button class="btn errado" onclick="answer(false)">Não sabia</button>
+      <span class="counter">${current + 1} / ${cards.length}</span>
+      <button class="btn correto" onclick="answer(true)">Sabia!</button>
+    </div>
+    <div class="flip-hint" id="fc-hint">
+      <span class="counter">${current + 1} / ${cards.length}</span>
+    </div>
+  `;
+}
+
+function flipCard() {
+  if (flipped) return;
+  flipped = true;
+  document.getElementById('fc-card').classList.add('flipped');
+  document.getElementById('fc-controls').style.display = 'flex';
+  document.getElementById('fc-hint').style.display = 'none';
+}
+
+function answer(knew) {
+  scores.push(knew);
+  current++;
+  if (current >= cards.length) renderResult();
+  else renderCard();
+}
+
+function renderResult() {
+  document.getElementById('fc-prog').style.width = '100%';
+  document.getElementById('fc-label').textContent = '10 / 10';
+  renderDots();
+  const correct = scores.filter(Boolean).length;
+  const pct = Math.round((correct / cards.length) * 100);
+  const color = pct >= 80 ? '#1D9E75' : pct >= 60 ? '#BA7517' : '#E24B4A';
+  const msg = pct >= 80
+    ? 'Excelente! Você demonstra bom domínio dos cuidados com lesões de pele.'
+    : pct >= 60
+    ? 'Bom resultado! Revise os casos que não soube — especialmente classificação e documentação.'
+    : 'Continue praticando. Esses casos aparecem todo dia na prática hospitalar — rever com calma vai ajudar muito.';
+
+  document.getElementById('fc-main').innerHTML = `
+    <div class="result">
+      <div class="result-score" style="color:${color}">${pct}%</div>
+      <p class="result-sub">${correct} de ${cards.length} casos respondidos</p>
+      <p class="result-msg">${msg}</p>
+      <button class="btn-restart" onclick="restart()">Repetir o baralho</button>
+    </div>
+  `;
+}
+
+function restart() {
+  current = 0; flipped = false; scores = [];
+  document.getElementById('fc-prog').style.width = '0%';
+  renderCard();
+}
+
+renderCard();
+</script>
+</body>
+</html>
