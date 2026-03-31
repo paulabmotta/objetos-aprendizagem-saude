@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flash Cards — PGRSS</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f5f4f0;
+    --surface: #ffffff;
+    --text: #1a1a18;
+    --text-muted: #6b6b68;
+    --text-faint: #a0a09c;
+    --border: rgba(0,0,0,0.10);
+    --border-strong: rgba(0,0,0,0.18);
+    --green: #1D9E75;
+    --green-light: #E1F5EE;
+    --red: #E24B4A;
+    --red-light: #FCEBEB;
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem 4rem;
+  }
+
+  header {
+    width: 100%;
+    max-width: 640px;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+
+  .header-tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--green);
+    background: var(--green-light);
+    padding: 4px 14px;
+    border-radius: 99px;
+    margin-bottom: 0.75rem;
+  }
+
+  header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    font-weight: 400;
+    color: var(--text);
+    line-height: 1.25;
+    margin-bottom: 0.4rem;
+  }
+
+  header p {
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+
+  .container {
+    width: 100%;
+    max-width: 640px;
+  }
+
+  .progress-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 1.25rem;
+  }
+
+  .progress-bar {
+    flex: 1;
+    height: 4px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--green);
+    border-radius: 99px;
+    transition: width 0.4s ease;
+  }
+
+  .progress-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    min-width: 48px;
+    text-align: right;
+  }
+
+  .dots {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+  }
+
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(0,0,0,0.18);
+    background: transparent;
+    transition: background 0.3s, border-color 0.3s;
+  }
+
+  .dot.current { background: #dbeafe; border-color: #3b82f6; }
+  .dot.correct { background: var(--green); border-color: var(--green); }
+  .dot.wrong   { background: var(--red);   border-color: var(--red); }
+
+  .scene {
+    perspective: 1200px;
+    width: 100%;
+    margin-bottom: 1.25rem;
+    cursor: pointer;
+  }
+
+  .card {
+    width: 100%;
+    min-height: 280px;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.55s cubic-bezier(.4,0,.2,1);
+    border-radius: var(--radius);
+  }
+
+  .card.flipped { transform: rotateY(180deg); }
+
+  .face {
+    position: absolute;
+    width: 100%;
+    min-height: 280px;
+    backface-visibility: hidden;
+    border-radius: var(--radius);
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    border: 1px solid var(--border);
+  }
+
+  .face.back { transform: rotateY(180deg); }
+
+  .card-tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 3px 12px;
+    border-radius: 99px;
+    margin-bottom: 0.75rem;
+    flex-shrink: 0;
+  }
+
+  .card-case {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 8px;
+  }
+
+  .card-question {
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.6;
+    color: var(--text);
+    flex: 1;
+  }
+
+  .card-hint {
+    font-size: 12px;
+    color: var(--text-faint);
+    margin-top: 1.25rem;
+    align-self: center;
+  }
+
+  .card-answer {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text);
+    margin-bottom: 0.75rem;
+  }
+
+  .card-answer strong { font-weight: 600; }
+
+  .card-tip {
+    font-size: 13px;
+    line-height: 1.6;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    border-left: 3px solid;
+    width: 100%;
+    margin-top: auto;
+  }
+
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 0.75rem;
+  }
+
+  .btn {
+    flex: 1;
+    padding: 12px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+  }
+
+  .btn:hover { background: var(--bg); }
+  .btn:active { transform: scale(0.98); }
+  .btn.correto { border-color: var(--green); color: var(--green); }
+  .btn.errado  { border-color: var(--red);   color: var(--red); }
+  .btn.correto:hover { background: var(--green-light); }
+  .btn.errado:hover  { background: var(--red-light); }
+
+  .counter {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    min-width: 52px;
+    text-align: center;
+  }
+
+  .flip-hint { text-align: center; padding: 4px 0; }
+
+  .result {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2.5rem 2rem;
+    text-align: center;
+  }
+
+  .result-score {
+    font-family: 'DM Serif Display', serif;
+    font-size: 64px;
+    font-weight: 400;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+  }
+
+  .result-sub { font-size: 14px; color: var(--text-muted); margin-bottom: 1rem; }
+
+  .result-msg {
+    font-size: 15px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    max-width: 400px;
+    margin: 0 auto 1.75rem;
+  }
+
+  .btn-restart {
+    display: inline-block;
+    padding: 12px 32px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .btn-restart:hover { background: var(--bg); }
+
+  footer {
+    margin-top: 2.5rem;
+    font-size: 12px;
+    color: var(--text-faint);
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-tag">Segurança do Paciente</div>
+  <h1>PGRSS — Resíduos de Serviços de Saúde</h1>
+  <p>6 casos práticos para todos os profissionais do hospital</p>
+</header>
+
+<div class="container">
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" id="fc-prog" style="width:0%"></div></div>
+    <span class="progress-label" id="fc-label">0 / 6</span>
+  </div>
+  <div class="dots" id="fc-dots"></div>
+  <div id="fc-main"></div>
+</div>
+
+<footer>Objeto de aprendizagem — Educação em Saúde Hospitalar</footer>
+
+<script>
+const cards = [
+  {
+    tag: 'Descarte de Perfurocortantes', tagBg: '#F5C4B3', tagColor: '#712B13', tipBorder: '#993C1D', tipBg: '#FAECE7', tipColor: '#4A1B0C', bg: '#FAECE7',
+    caso: 'Caso 1',
+    question: 'Após aplicar uma injeção, o técnico de enfermagem precisa descartar a agulha. Ele está com pressa e pensa em dobrar a agulha antes de jogar no lixo comum para "ocupar menos espaço". Essa conduta está correta?',
+    answer: '<strong>Não. Essa conduta é incorreta e perigosa.</strong> Agulhas, lâminas e qualquer material que corta ou fura devem ser descartados diretamente na caixa de material perfurocortante (caixa amarela), sem reencapar, dobrar ou quebrar. O lixo comum não é adequado e coloca em risco quem recolhe o lixo.',
+    tip: 'A caixa amarela deve ser fechada quando atingir ¾ da capacidade — nunca tente comprimir o conteúdo ou forçar mais material.'
+  },
+  {
+    tag: 'Classificação dos Resíduos', tagBg: '#CECBF6', tagColor: '#3C3489', tipBorder: '#534AB7', tipBg: '#EEEDFE', tipColor: '#26215C', bg: '#EEEDFE',
+    caso: 'Caso 2',
+    question: 'A equipe de limpeza encontra no corredor: um curativo usado com sangue, uma embalagem de soro vazia e restos de comida do paciente. Como cada item deve ser descartado?',
+    answer: '<strong>Cada resíduo tem um destino diferente.</strong> O curativo com sangue é resíduo infectante (Grupo A) — vai no saco branco leitoso. A embalagem de soro vazia, se não tiver sangue ou medicamento, é resíduo comum (Grupo D) — vai no saco preto. Os restos de comida também são resíduo comum (Grupo D) — saco preto.',
+    tip: 'Misturar resíduo infectante com lixo comum é infração sanitária e aumenta o risco de contaminação para toda a equipe.'
+  },
+  {
+    tag: 'Descarte de Medicamentos', tagBg: '#FAC775', tagColor: '#633806', tipBorder: '#854F0B', tipBg: '#FAEEDA', tipColor: '#412402', bg: '#FAEEDA',
+    caso: 'Caso 3',
+    question: 'Sobrou parte de um medicamento líquido após o uso no paciente. Um funcionário sugere jogar o restante na pia para não acumular. Isso pode ser feito?',
+    answer: '<strong>Não. Medicamentos não devem ser jogados na pia ou no lixo comum.</strong> Sobras de medicamentos são resíduos químicos (Grupo B) e devem ser devolvidas à farmácia do hospital ou descartadas no recipiente específico para resíduos químicos, conforme o protocolo da instituição.',
+    tip: 'Jogar medicamento na pia contamina a água e o meio ambiente — o descarte correto protege não só o hospital, mas a comunidade ao redor.'
+  },
+  {
+    tag: 'Identificação das Embalagens', tagBg: '#9FE1CB', tagColor: '#085041', tipBorder: '#1D9E75', tipBg: '#E1F5EE', tipColor: '#04342C', bg: '#E1F5EE',
+    caso: 'Caso 4',
+    question: 'Durante uma fiscalização, o auditor percebe que os sacos de lixo infectante do setor não têm nenhuma identificação. O responsável diz que "todo mundo já sabe o que é". Qual é o problema dessa situação?',
+    answer: '<strong>Todos os recipientes de resíduos infectantes devem ter o símbolo de risco biológico e a identificação do tipo de resíduo.</strong> A falta de identificação é uma irregularidade sanitária grave. Em caso de acidente ou transporte, qualquer pessoa que manuseie o material precisa saber o que está dentro para se proteger corretamente.',
+    tip: 'A identificação correta protege não só quem trabalha no setor, mas também a equipe de coleta externa e o meio ambiente.'
+  },
+  {
+    tag: 'Armazenamento Temporário', tagBg: '#B5D4F4', tagColor: '#0C447C', tipBorder: '#185FA5', tipBg: '#E6F1FB', tipColor: '#042C53', bg: '#E6F1FB',
+    caso: 'Caso 5',
+    question: 'O local de armazenamento temporário dos resíduos do hospital está com sacos acumulados há 3 dias, sem refrigeração, com mau cheiro e porta aberta. Quais são os riscos dessa situação?',
+    answer: '<strong>Riscos graves de contaminação e infração sanitária.</strong> Resíduos infectantes não podem ficar mais de 24 horas em armazenamento temporário sem refrigeração. O local deve ser fechado, sinalizado, ventilado e de acesso restrito. Acúmulo prolongado atrai insetos e roedores e aumenta o risco de contaminação do ambiente e das pessoas.',
+    tip: 'O armazenamento temporário é uma etapa do PGRSS — negligenciá-la anula todo o esforço de separação e descarte correto feito dentro do hospital.'
+  },
+  {
+    tag: 'Equipamento de Proteção', tagBg: '#C0DD97', tagColor: '#27500A', tipBorder: '#3B6D11', tipBg: '#EAF3DE', tipColor: '#173404', bg: '#EAF3DE',
+    caso: 'Caso 6',
+    question: 'Um funcionário da equipe de limpeza precisa recolher os sacos de resíduo infectante, mas está apenas com uniforme e sem luvas, alegando que "os sacos estão fechados e não tem perigo". Qual o risco e qual a conduta correta?',
+    answer: '<strong>Há sim risco de acidente, mesmo com o saco fechado.</strong> Materiais perfurocortantes podem furar o saco. O funcionário deve usar obrigatoriamente: luvas grossas de borracha, avental impermeável, máscara e, quando necessário, óculos de proteção. O uso de EPI no manuseio de resíduos é obrigação do empregador e direito do trabalhador.',
+    tip: 'Nenhum resíduo de serviço de saúde deve ser manuseado sem EPI adequado — isso vale para todos os grupos, do lixo comum ao infectante.'
+  }
+];
+
+let current = 0, flipped = false, scores = [];
+
+function renderDots() {
+  document.getElementById('fc-dots').innerHTML = cards.map((_,i) => {
+    let cls = '';
+    if (i < scores.length) cls = scores[i] ? 'correct' : 'wrong';
+    else if (i === current) cls = 'current';
+    return `<div class="dot ${cls}"></div>`;
+  }).join('');
+}
+
+function renderCard() {
+  flipped = false;
+  const c = cards[current];
+  const pct = Math.round((current / cards.length) * 100);
+  document.getElementById('fc-prog').style.width = pct + '%';
+  document.getElementById('fc-label').textContent = current + ' / ' + cards.length;
+  renderDots();
+  document.getElementById('fc-main').innerHTML = `
+    <div class="scene" onclick="flipCard()">
+      <div class="card" id="fc-card">
+        <div class="face front" style="background:${c.bg}">
+          <span class="card-tag" style="background:${c.tagBg};color:${c.tagColor}">${c.tag}</span>
+          <p class="card-case">${c.caso}</p>
+          <p class="card-question">${c.question}</p>
+          <p class="card-hint">toque para ver a resposta</p>
+        </div>
+        <div class="face back" style="background:${c.bg}">
+          <span class="card-tag" style="background:${c.tagBg};color:${c.tagColor}">${c.tag}</span>
+          <p class="card-answer">${c.answer}</p>
+          <div class="card-tip" style="border-color:${c.tipBorder};background:${c.tipBg};color:${c.tipColor}">${c.tip}</div>
+        </div>
+      </div>
+    </div>
+    <div class="controls" id="fc-controls" style="display:none">
+      <button class="btn errado" onclick="answer(false)">Não sabia</button>
+      <span class="counter">${current + 1} / ${cards.length}</span>
+      <button class="btn correto" onclick="answer(true)">Sabia!</button>
+    </div>
+    <div class="flip-hint" id="fc-hint">
+      <span class="counter">${current + 1} / ${cards.length}</span>
+    </div>
+  `;
+}
+
+function flipCard() {
+  if (flipped) return;
+  flipped = true;
+  document.getElementById('fc-card').classList.add('flipped');
+  document.getElementById('fc-controls').style.display = 'flex';
+  document.getElementById('fc-hint').style.display = 'none';
+}
+
+function answer(knew) {
+  scores.push(knew);
+  current++;
+  if (current >= cards.length) renderResult();
+  else renderCard();
+}
+
+function renderResult() {
+  document.getElementById('fc-prog').style.width = '100%';
+  document.getElementById('fc-label').textContent = '6 / 6';
+  renderDots();
+  const correct = scores.filter(Boolean).length;
+  const pct = Math.round((correct / cards.length) * 100);
+  const color = pct >= 80 ? '#1D9E75' : pct >= 60 ? '#BA7517' : '#E24B4A';
+  const msg = pct >= 80 ? 'Muito bem! Você conhece as boas práticas de descarte de resíduos.' :
+              pct >= 60 ? 'Bom resultado! Vale rever os casos que não soube — especialmente classificação e armazenamento.' :
+              'Continue praticando. O descarte correto protege você, seus colegas e o meio ambiente.';
+  document.getElementById('fc-main').innerHTML = `
+    <div class="result">
+      <div class="result-score" style="color:${color}">${pct}%</div>
+      <p class="result-sub">${correct} de ${cards.length} casos respondidos</p>
+      <p class="result-msg">${msg}</p>
+      <button class="btn-restart" onclick="restart()">Repetir o baralho</button>
+    </div>
+  `;
+}
+
+function restart() {
+  current = 0; flipped = false; scores = [];
+  document.getElementById('fc-prog').style.width = '0%';
+  renderCard();
+}
+
+renderCard();
+</script>
+</body>
+</html>
