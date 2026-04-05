@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pílula — Como você está, de verdade?</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=DM+Serif+Display&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f7f5f2;
+    --surface: #ffffff;
+    --text: #1a1a18;
+    --text-muted: #6b6b68;
+    --text-faint: #a8a8a4;
+    --border: rgba(0,0,0,0.09);
+    --border-med: rgba(0,0,0,0.15);
+    --accent: #7F77DD;
+    --accent-dark: #534AB7;
+    --accent-light: #EEEDFE;
+    --teal: #1D9E75;
+    --teal-light: #E1F5EE;
+    --amber: #BA7517;
+    --amber-light: #FAEEDA;
+    --coral: #D85A30;
+    --coral-light: #FAECE7;
+    --radius: 20px;
+    --radius-sm: 12px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem 4rem;
+  }
+
+  .shell { width: 100%; max-width: 580px; }
+
+  .prog-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 2rem;
+  }
+
+  .prog-bar {
+    flex: 1; height: 3px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .prog-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 99px;
+    transition: width 0.5s ease;
+  }
+
+  .prog-label {
+    font-size: 12px;
+    color: var(--text-faint);
+    min-width: 44px;
+    text-align: right;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    margin-bottom: 1.25rem;
+    animation: fadeUp 0.4s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+  }
+
+  .titulo {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(1.35rem, 3.5vw, 1.75rem);
+    font-weight: 400;
+    line-height: 1.3;
+    color: var(--text);
+    margin-bottom: 1rem;
+  }
+
+  .corpo {
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--text-muted);
+  }
+
+  .corpo strong { color: var(--text); font-weight: 500; }
+  .corpo em { font-style: italic; }
+
+  .destaque {
+    background: var(--accent-light);
+    border-radius: var(--radius-sm);
+    padding: 1rem 1.25rem;
+    margin: 1.25rem 0 0;
+    font-size: 15px;
+    font-style: italic;
+    line-height: 1.7;
+    color: #3C3489;
+  }
+
+  .pergunta-box {
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    padding: 1.1rem 1.25rem;
+    margin-top: 1.25rem;
+  }
+
+  .pergunta-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 0.4rem;
+  }
+
+  .pergunta-texto {
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.6;
+    color: var(--text);
+  }
+
+  .opcoes {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    margin-top: 1.1rem;
+  }
+
+  .opcao {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    padding: 13px 15px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border-med);
+    background: var(--surface);
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    text-align: left;
+    font-family: 'DM Sans', sans-serif;
+    width: 100%;
+  }
+
+  .opcao:hover { border-color: var(--accent); background: var(--accent-light); }
+  .opcao.sel   { border-color: var(--accent); background: var(--accent-light); }
+
+  .opcao-icone {
+    font-size: 18px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .opcao-texto {
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--text);
+    padding-top: 1px;
+  }
+
+  .feedback {
+    border-radius: var(--radius-sm);
+    padding: 13px 15px;
+    margin-top: 1rem;
+    font-size: 14px;
+    line-height: 1.65;
+    display: none;
+    animation: fadeUp 0.3s ease both;
+  }
+
+  .feedback.show { display: block; }
+  .feedback.ok      { background: var(--teal-light);  color: #085041; border-left: 3px solid var(--teal); }
+  .feedback.alerta  { background: var(--amber-light); color: #633806; border-left: 3px solid var(--amber); }
+  .feedback.cuidado { background: var(--coral-light); color: #4A1B0C; border-left: 3px solid var(--coral); }
+  .feedback.neutro  { background: var(--accent-light); color: #26215C; border-left: 3px solid var(--accent); }
+
+  .btn-wrap { display: flex; justify-content: flex-end; margin-top: 1.1rem; }
+
+  .btn {
+    padding: 11px 26px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border-med);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .btn:hover { background: var(--bg); }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .btn.primario {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  .btn.primario:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
+
+  /* Resultado */
+  .resultado-topo {
+    text-align: center;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1.5rem;
+  }
+
+  .resultado-emoji { font-size: 52px; display: block; margin-bottom: 1rem; }
+
+  .resultado-titulo {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(1.3rem, 3.5vw, 1.7rem);
+    font-weight: 400;
+    line-height: 1.3;
+    color: var(--text);
+    margin-bottom: 0.75rem;
+  }
+
+  .resultado-sub {
+    font-size: 15px;
+    color: var(--text-muted);
+    line-height: 1.75;
+  }
+
+  .dicas-titulo {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 0.75rem;
+  }
+
+  .dicas { display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.5rem; }
+
+  .dica {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 13px 15px;
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    border: 1px solid var(--border);
+  }
+
+  .dica-icone { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+  .dica-texto { font-size: 14px; line-height: 1.65; color: var(--text-muted); }
+  .dica-texto strong { color: var(--text); font-weight: 500; display: block; margin-bottom: 2px; }
+
+  .aviso {
+    background: var(--accent-light);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    font-size: 13px;
+    line-height: 1.65;
+    color: #3C3489;
+    margin-bottom: 1.25rem;
+  }
+
+  .btn-reiniciar {
+    width: 100%;
+    padding: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border-med);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .btn-reiniciar:hover { background: var(--bg); }
+
+  footer {
+    margin-top: 2.5rem;
+    font-size: 12px;
+    color: var(--text-faint);
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="prog-wrap">
+    <div class="prog-bar"><div class="prog-fill" id="prog" style="width:0%"></div></div>
+    <span class="prog-label" id="prog-label">Início</span>
+  </div>
+  <div id="main"></div>
+</div>
+
+<footer>Objeto de aprendizagem — Saúde e Bem-estar no Trabalho</footer>
+
+<script>
+const respostas = [];
+
+const etapas = [
+  {
+    tipo: 'intro',
+    eyebrow: 'Saúde Mental no Trabalho',
+    titulo: 'Como você está, de verdade?',
+    corpo: `Não a resposta que você dá quando alguém pergunta no corredor.<br><br>A resposta de verdade mesmo — a que você guarda para si.<br><br>Esta pílula é um momento só seu. Não tem nota, não tem certo ou errado, não tem ninguém avaliando. É uma pausa de alguns minutos para você <strong>prestar atenção em como está se sentindo</strong> — no corpo, na cabeça, nas emoções.<br><br>Às vezes a gente só precisa de alguém que pergunte com cuidado. Pode ser esse o momento.`,
+    btn: 'Estou pronto'
+  },
+
+  {
+    tipo: 'reflexao',
+    eyebrow: 'Pergunta 1 de 4',
+    titulo: 'Como tem sido sua energia ao longo do dia?',
+    corpo: `O cansaço físico a gente logo percebe — o corpo avisa. Mas o <strong>cansaço emocional</strong> costuma chegar devagar, sem avisar com clareza. Às vezes aparece como irritação, como dificuldade de concentrar, como aquela sensação de que <em>"nada está rendendo"</em>.`,
+    pergunta: 'Como você descreveria seu nível de energia nos últimos dias?',
+    opcoes: [
+      { icone: '🌤️', texto: 'Tenho me sentido bem — com energia para o trabalho e para a vida.', tipo: 'ok', feedback: 'Que bom ouvir isso! Energia presente é um sinal de que você está conseguindo se recuperar entre os esforços. Guarda essa percepção — ela é um ponto de referência importante.' },
+      { icone: '🌥️', texto: 'Estou funcionando, mas no piloto automático — sem muita energia sobrando.', tipo: 'alerta', feedback: 'Esse "piloto automático" é um sinal que merece atenção. Não é crise, mas é um aviso do corpo de que ele precisa de mais cuidado. Pequenas pausas ao longo do dia podem ajudar mais do que parece.' },
+      { icone: '⛈️', texto: 'Tenho chegado e saído do trabalho exausto — mal sobra energia para mais nada.', tipo: 'cuidado', feedback: 'Obrigada por essa honestidade. Exaustão constante é um sinal importante — não de fraqueza, mas de que o corpo e a mente estão precisando de suporte. Você vai encontrar algumas dicas ao final.' }
+    ]
+  },
+
+  {
+    tipo: 'reflexao',
+    eyebrow: 'Pergunta 2 de 4',
+    titulo: 'O trabalho tem ficado na sua cabeça fora do horário?',
+    corpo: `Levar preocupações para casa, não conseguir desligar, acordar pensando em pendências — isso <strong>impede que o descanso seja de verdade um descanso</strong>. O corpo pode estar em casa, mas a cabeça ainda está no trabalho.`,
+    pergunta: 'Nos últimos tempos, como tem sido seu desligamento do trabalho fora do expediente?',
+    opcoes: [
+      { icone: '😌', texto: 'Consigo me desligar com razoável facilidade quando o dia termina.', tipo: 'ok', feedback: 'Isso é mais valioso do que parece. Conseguir desligar é uma habilidade — e ela protege muito a saúde mental a longo prazo. Continue cultivando esse espaço.' },
+      { icone: '😐', texto: 'Às vezes consigo, às vezes fico pensando em coisas do trabalho.', tipo: 'alerta', feedback: 'Isso é bastante comum, mas vale atenção. Uma dica simples: criar um "ritual de saída" — um gesto ou hábito que marque o fim do trabalho — pode ajudar a cabeça a fazer essa transição.' },
+      { icone: '😔', texto: 'É difícil — o trabalho parece estar sempre presente, mesmo quando não quero.', tipo: 'cuidado', feedback: 'Quando o trabalho invade todos os espaços, o descanso perde o efeito restaurador. Isso é desgastante — e você merece ter um tempo que seja só seu. Vamos falar sobre isso nas dicas.' }
+    ]
+  },
+
+  {
+    tipo: 'reflexao',
+    eyebrow: 'Pergunta 3 de 4',
+    titulo: 'Como você tem se sentido com relação ao seu trabalho?',
+    corpo: `Não estamos falando só de produtividade ou desempenho. Estamos falando de <strong>como o trabalho faz você se sentir</strong> — se ainda tem sentido, se você se sente parte de algo, se há momentos de satisfação no meio do dia.`,
+    pergunta: 'Quando você pensa no seu trabalho hoje, qual sentimento aparece primeiro?',
+    opcoes: [
+      { icone: '💛', texto: 'Sinto que contribuo e que o que faço tem importância.', tipo: 'ok', feedback: 'Esse senso de propósito é um dos maiores protetores da saúde mental. Quando o trabalho tem significado, a gente aguenta muito mais — e sofre muito menos.' },
+      { icone: '🤍', texto: 'Faço o meu trabalho, mas sinto que estou um pouco distante dele.', tipo: 'alerta', feedback: 'Esse distanciamento emocional pode ser um sinal de cansaço acumulado — e não necessariamente do trabalho em si. Às vezes a gente precisa se reconectar com o porquê do que faz. Pequenos reconhecimentos no dia a dia ajudam.' },
+      { icone: '🩶', texto: 'Tenho me sentido sem ânimo, indiferente ou pesado com relação ao trabalho.', tipo: 'cuidado', feedback: 'Essa indiferença ou peso emocional é um dos sinais clássicos de esgotamento. Você não está "sendo fraco" — seu sistema está pedindo socorro de um jeito silencioso. Cuide-se com a mesma atenção que você dá aos outros.' }
+    ]
+  },
+
+  {
+    tipo: 'reflexao',
+    eyebrow: 'Pergunta 4 de 4',
+    titulo: 'Você tem cuidado de você fora do trabalho?',
+    corpo: `Autocuidado não é luxo — é manutenção. <strong>Dormir bem, comer com atenção, ter momentos de prazer e conexão</strong> são os pilares que sustentam a saúde mental. Quando eles enfraquecem, tudo fica mais pesado.`,
+    pergunta: 'Como estão os seus hábitos de autocuidado ultimamente?',
+    opcoes: [
+      { icone: '🌿', texto: 'Estou conseguindo dormir, me alimentar e ter momentos para mim.', tipo: 'ok', feedback: 'Isso importa muito mais do que parece. Esses hábitos são a base — quando a base está firme, a gente consegue lidar melhor com tudo o mais. Continue priorizando isso.' },
+      { icone: '🍂', texto: 'Alguns hábitos estão ok, mas outros foram ficando para depois.', tipo: 'alerta', feedback: 'Esse "depois" às vezes nunca chega. Não precisa mudar tudo de uma vez — escolha uma coisa pequena essa semana. Dormir 30 minutos a mais, uma refeição sem tela, uma caminhada curta. Pequenas mudanças somam.' },
+      { icone: '🌧️', texto: 'Tenho negligenciado o sono, a alimentação e quase não tenho tempo para mim.', tipo: 'cuidado', feedback: 'Quando o autocuidado vai para o final da fila repetidamente, o esgotamento fica mais próximo. Você merece estar nessa lista — não como último item, mas como parte dela.' }
+    ]
+  },
+
+  { tipo: 'resultado' }
+];
+
+let etapaAtual = 0;
+let opcaoSel = null;
+let feedbackMostrado = false;
+
+const totalPerguntas = etapas.filter(e => e.tipo === 'reflexao').length;
+
+function numPerguntaAtual() {
+  return etapas.slice(0, etapaAtual + 1).filter(e => e.tipo === 'reflexao').length;
+}
+
+function atualizarProg() {
+  const total = etapas.length - 1;
+  const pct = Math.round((etapaAtual / total) * 100);
+  document.getElementById('prog').style.width = pct + '%';
+  const e = etapas[etapaAtual];
+  if (e.tipo === 'intro') document.getElementById('prog-label').textContent = 'Início';
+  else if (e.tipo === 'resultado') document.getElementById('prog-label').textContent = 'Concluído';
+  else document.getElementById('prog-label').textContent = numPerguntaAtual() + ' / ' + totalPerguntas;
+}
+
+function renderizar() {
+  opcaoSel = null;
+  feedbackMostrado = false;
+  atualizarProg();
+  const e = etapas[etapaAtual];
+  const main = document.getElementById('main');
+
+  if (e.tipo === 'intro') {
+    main.innerHTML = `
+      <div class="card">
+        <p class="eyebrow">${e.eyebrow}</p>
+        <h1 class="titulo">${e.titulo}</h1>
+        <div class="corpo">${e.corpo}</div>
+      </div>
+      <div class="btn-wrap">
+        <button class="btn primario" onclick="avancar()">${e.btn} →</button>
+      </div>
+    `;
+  }
+
+  else if (e.tipo === 'reflexao') {
+    const opcoesHTML = e.opcoes.map((op, i) => `
+      <button class="opcao" id="op-${i}" onclick="selecionarOpcao(${i})">
+        <span class="opcao-icone">${op.icone}</span>
+        <span class="opcao-texto">${op.texto}</span>
+      </button>
+    `).join('');
+
+    const ehUltima = etapas[etapaAtual + 1]?.tipo === 'resultado';
+
+    main.innerHTML = `
+      <div class="card">
+        <p class="eyebrow">${e.eyebrow}</p>
+        <h2 class="titulo">${e.titulo}</h2>
+        <div class="corpo">${e.corpo}</div>
+        <div class="pergunta-box">
+          <p class="pergunta-label">Para você refletir</p>
+          <p class="pergunta-texto">${e.pergunta}</p>
+        </div>
+        <div class="opcoes">${opcoesHTML}</div>
+        <div class="feedback" id="feedback"></div>
+      </div>
+      <div class="btn-wrap">
+        <button class="btn primario" id="btn-av" onclick="avancar()" disabled>
+          ${ehUltima ? 'Ver minhas dicas →' : 'Próxima pergunta →'}
+        </button>
+      </div>
+    `;
+  }
+
+  else if (e.tipo === 'resultado') {
+    const cuidados = respostas.filter(r => r === 'cuidado').length;
+    const alertas  = respostas.filter(r => r === 'alerta').length;
+    const oks      = respostas.filter(r => r === 'ok').length;
+
+    let emoji, titulo, sub;
+
+    if (cuidados >= 2) {
+      emoji = '🤗';
+      titulo = 'Você merece mais cuidado — inclusive de si mesmo.';
+      sub = 'Suas respostas mostram que você está carregando um peso considerável. Isso não é fraqueza — é sinal de que você tem dado muito de si. Agora é hora de colocar um pouco de atenção em você.';
+    } else if (alertas >= 2) {
+      emoji = '💛';
+      titulo = 'Você está bem, mas vale ficar de olho.';
+      sub = 'Algumas respostas mostram sinais de cansaço acumulado. Nada que pequenos ajustes no dia a dia não possam ajudar — e as dicas abaixo são um bom ponto de partida.';
+    } else {
+      emoji = '🌿';
+      titulo = 'Você está cuidando de você. Isso importa.';
+      sub = 'Suas respostas mostram que você tem conseguido manter equilíbrio entre o trabalho e o seu bem-estar. Continue prestando atenção nesses sinais — essa consciência é o maior presente que você pode dar a si mesmo.';
+    }
+
+    const dicas = [
+      {
+        icone: '😴',
+        titulo: 'O sono é sagrado',
+        texto: 'Dormir bem não é perda de tempo — é quando o cérebro processa, organiza e se recupera. Tente criar um horário regular para dormir e acordar, mesmo nos fins de semana.'
+      },
+      {
+        icone: '🛑',
+        titulo: 'Pausa não é fraqueza',
+        texto: 'Fazer pequenas pausas ao longo do dia — mesmo que de 5 minutos — ajuda o cérebro a trabalhar melhor. Levante, respire, olhe para longe. Seu rendimento agradece.'
+      },
+      {
+        icone: '💬',
+        titulo: 'Falar ajuda',
+        texto: 'Guardar tudo para si pesa. Conversar com alguém de confiança — um amigo, um familiar, um colega — alivia. E se o peso for grande, buscar apoio profissional é um ato de coragem, não de fraqueza.'
+      },
+      {
+        icone: '🚶',
+        titulo: 'Movimento move o humor',
+        texto: 'Não precisa ser academia. Uma caminhada de 20 minutos já libera substâncias que melhoram o humor e reduzem o estresse. Encontre um movimento que você goste — isso faz diferença.'
+      },
+      {
+        icone: '📵',
+        titulo: 'Crie um "fim de expediente" de verdade',
+        texto: 'Um ritual simples — guardar o crachá, fazer um chá, ouvir uma música — pode ajudar o cérebro a entender que o trabalho acabou. O descanso precisa ser intencional.'
+      }
+    ];
+
+    const dicasFiltradas = cuidados >= 2 ? dicas : dicas.slice(0, 3);
+
+    main.innerHTML = `
+      <div class="card">
+        <div class="resultado-topo">
+          <span class="resultado-emoji">${emoji}</span>
+          <h2 class="resultado-titulo">${titulo}</h2>
+          <p class="resultado-sub">${sub}</p>
+        </div>
+        <p class="dicas-titulo">Dicas para levar para a vida</p>
+        <div class="dicas">
+          ${dicasFiltradas.map(d => `
+            <div class="dica">
+              <span class="dica-icone">${d.icone}</span>
+              <div class="dica-texto"><strong>${d.titulo}</strong>${d.texto}</div>
+            </div>
+          `).join('')}
+        </div>
+        <div class="aviso">
+          Se você está passando por um momento muito difícil e sente que precisa de apoio, converse com alguém de confiança ou procure o serviço de saúde mais próximo. Você não precisa passar por isso sozinho.
+        </div>
+        <button class="btn-reiniciar" onclick="reiniciar()">Refazer a pílula</button>
+      </div>
+    `;
+  }
+}
+
+function selecionarOpcao(i) {
+  if (feedbackMostrado) return;
+  const e = etapas[etapaAtual];
+  opcaoSel = i;
+
+  document.querySelectorAll('.opcao').forEach((el, idx) => {
+    el.classList.toggle('sel', idx === i);
+  });
+
+  const op = e.opcoes[i];
+  respostas.push(op.tipo);
+
+  const fb = document.getElementById('feedback');
+  fb.textContent = op.feedback;
+  fb.className = 'feedback show ' + op.tipo;
+
+  document.getElementById('btn-av').disabled = false;
+  feedbackMostrado = true;
+}
+
+function avancar() {
+  etapaAtual++;
+  renderizar();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function reiniciar() {
+  etapaAtual = 0;
+  respostas.length = 0;
+  renderizar();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+renderizar();
+</script>
+</body>
+</html>
